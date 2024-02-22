@@ -1,0 +1,18 @@
+{
+  "name": "passwordmanager",
+  "version": "1.0.0",
+  "description": "Server handler of password manager",
+  "main": "server.ts",
+  "scripts": {
+    "run": "server.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Mathieu Johnson",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.19"
+  }
+}
