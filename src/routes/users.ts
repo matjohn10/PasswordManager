@@ -23,7 +23,11 @@ router.post("/register", async (req: Request, res: Response) => {
     });
 
     const savedUser = await newUser.save();
-    res.status(201).json(savedUser);
+
+    // MAYBE DO NOT SEND USER HERE
+    res
+      .status(201)
+      .json({ username: savedUser.username, userId: savedUser._id });
   } catch (err) {
     res.status(500).json({ message: "Error registering user.", err });
   }
@@ -45,9 +49,18 @@ router.post("/login", async (req: Request, res: Response) => {
       return res.status(401).json({ message: "Invalid username or password" });
     }
 
+    // Valid user, create tokens, save refresh token in DB and send to browser
     const token = jwt.sign({ userId: user._id }, process.env.JWT_KEY, {
-      expiresIn: "24h",
+      expiresIn: "10s",
     });
+    const refresh = jwt.sign({ userId: user._id }, process.env.REFRESH_KEY, {
+      expiresIn: "1d",
+    });
+    await User.updateOne(
+      { username: req.body.username },
+      { refreshToken: refresh }
+    );
+    res.cookie("jwt", refresh, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 });
     res.json({ token });
   } catch (err) {
     res.status(500).json({ message: "Error login user." });

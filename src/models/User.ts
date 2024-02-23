@@ -15,6 +15,10 @@ const userSchema = new Schema({
     type: Date,
     default: Date.now,
   },
+  refreshToken: {
+    type: String,
+    unique: true,
+  },
 });
 
 module.exports = mongoose.model("User", userSchema);
