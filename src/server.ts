@@ -17,6 +17,10 @@ app.get("/", (req: Request, res: Response) => {
 app.use("/refresh", require("./routes/refreshToken"));
 app.use("/auth", require("./routes/users"));
 
+// protected routes
+app.use(require("./middleware/JwtMiddleware"));
+app.use("/api", require("./routes/apiRoutes"));
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });

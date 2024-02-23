@@ -51,7 +51,7 @@ router.post("/login", async (req: Request, res: Response) => {
 
     // Valid user, create tokens, save refresh token in DB and send to browser
     const token = jwt.sign({ userId: user._id }, process.env.JWT_KEY, {
-      expiresIn: "10s",
+      expiresIn: "15m",
     });
     const refresh = jwt.sign({ userId: user._id }, process.env.REFRESH_KEY, {
       expiresIn: "1d",

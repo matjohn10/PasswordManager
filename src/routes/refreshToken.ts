@@ -20,7 +20,7 @@ router.get("/", async (req: Request, res: Response) => {
       return res.status(403).json({ message: "Invalid token", err });
     }
     const token = jwt.sign({ userId: user._id }, process.env.JWT_KEY, {
-      expiresIn: "10s",
+      expiresIn: "15m",
     });
     res.json({ token });
   });
