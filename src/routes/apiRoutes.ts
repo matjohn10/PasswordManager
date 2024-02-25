@@ -6,6 +6,7 @@ const router = express.Router();
 const Manager = require("../models/Manager");
 const User = require("../models/User");
 const makeUpdateObj = require("../utils/updateObj");
+const createCSV = require("../utils/createCSV");
 
 // GET all the users information
 router.get("/:userId", async (req: Request, res: Response) => {
@@ -49,7 +50,27 @@ router.get("/:userId/:managerId", async (req: Request, res: Response) => {
   res.status(200).json(info);
 });
 // Download passwords as a csv file
-router.get("/download-all", async (req: Request, res: Response) => {});
+router.post("/download", async (req: Request, res: Response) => {
+  try {
+    const cookies = req.cookies;
+
+    if (!cookies?.jwt) return res.sendStatus(401);
+    // find user and check if there is one, if yes -> make sure the id in params is the same as the token user.
+    const user = await User.findOne({ refreshToken: cookies.jwt });
+
+    if (!user || user._id.toString() !== req.body.user.userId)
+      return res.sendStatus(401);
+
+    const info = await Manager.find({ userId: req.body.user.userId }).exec();
+    if (!info) return res.sendStatus(404);
+
+    // file url is created and ready to be downloaded on the frontend.
+    const file: string = createCSV(info);
+    res.status(201).json({ url: file });
+  } catch (err) {
+    res.status(500).json({ message: "Error preparing csv file.", err });
+  }
+});
 // Add to the users information
 router.post("/add", async (req: Request, res: Response) => {
   // req.body = { username, password, name, description }
