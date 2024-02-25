@@ -14,7 +14,12 @@ router.get("/:userId", async (req: Request, res: Response) => {
   if (!cookies?.jwt) return res.sendStatus(401);
   // find user and check if there is one, if yes -> make sure the id in params is the same as the token user.
   const user = await User.findOne({ refreshToken: cookies.jwt });
-  if (!user || user._id.toString() !== userId) return res.sendStatus(401);
+  if (
+    !user ||
+    user._id.toString() !== userId ||
+    req.body.user.userId !== userId
+  )
+    return res.sendStatus(401);
 
   //Get the user's managed passwords
   const info = await Manager.find({ userId }).exec();
@@ -31,7 +36,12 @@ router.get("/:userId/:managerId", async (req: Request, res: Response) => {
   if (!cookies?.jwt) return res.sendStatus(401);
   // find user and check if there is one, if yes -> make sure the id in params is the same as the token user.
   const user = await User.findOne({ refreshToken: cookies.jwt });
-  if (!user || user._id.toString() !== userId) return res.sendStatus(401);
+  if (
+    !user ||
+    user._id.toString() !== userId ||
+    req.body.user.userId !== userId
+  )
+    return res.sendStatus(401);
 
   // Get specific user's managed password
   const info = await Manager.findOne({ userId, _id: managerId });
@@ -42,7 +52,7 @@ router.get("/:userId/:managerId", async (req: Request, res: Response) => {
 router.get("/download-all", async (req: Request, res: Response) => {});
 // Add to the users information
 router.post("/add", async (req: Request, res: Response) => {
-  // req.body = { userId, username, password, name, description }
+  // req.body = { username, password, name, description }
   try {
     const encryptedPWD = encode(req.body.password, {
       algo: process.env.ENCRYPTION_ALGO,
@@ -50,7 +60,7 @@ router.post("/add", async (req: Request, res: Response) => {
       iterations: parseInt(process.env.ENCRYPTION_ITER || "", 10),
     });
     const pwdInfo = {
-      userId: req.body.userId,
+      userId: req.body.user.userId,
       username: req.body.username,
       password: encryptedPWD,
       name: req.body.name,
@@ -78,14 +88,19 @@ router.post("/add", async (req: Request, res: Response) => {
 });
 // Update the users information
 router.post("/update", async (req: Request, res: Response) => {
-  // req.body = { managerId, userId, username, password, name, description }
+  // req.body = { managerId, username, password, name, description }
   try {
-    const toUpdate: { [key: string]: any } = makeUpdateObj(req.body);
+    // makes update object, except the IDs
+    const toUpdate: { [key: string]: any } = makeUpdateObj(req.body, [
+      "managerId",
+      "user",
+    ]);
+    console.log(toUpdate);
     // Check if there is something to update
     if (Object.keys(toUpdate).length === 0) return res.sendStatus(201);
 
     const update = await Manager.findOneAndUpdate(
-      { _id: req.body.managerId, userId: req.body.userId },
+      { _id: req.body.managerId, userId: req.body.user.userId },
       toUpdate,
       { returnDocument: "after" }
     );

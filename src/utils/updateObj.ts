@@ -1,9 +1,11 @@
-type updateObj = { [key: string]: any };
-
-const makeUpdateObj = (body: Object): Object => {
+const makeUpdateObj = (body: Object, exceptions: string[] | null): Object => {
   let newObj: { [key: string]: any } = {};
   for (const [key, value] of Object.entries(body)) {
-    newObj[key] = value;
+    if (exceptions) {
+      if (!exceptions.includes(key)) newObj[key] = value;
+    } else {
+      newObj[key] = value;
+    }
   }
   return newObj;
 };
