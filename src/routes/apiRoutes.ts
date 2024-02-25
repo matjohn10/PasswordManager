@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
 const express = require("express");
 require("dotenv").config();
-const bcrypt = require("bcryptjs");
+const { encode } = require("../controllers/encryptionController");
 const router = express.Router();
 const Manager = require("../models/Manager");
 const User = require("../models/User");
+const makeUpdateObj = require("../utils/updateObj");
 
 // GET all the users information
 router.get("/:userId", async (req: Request, res: Response) => {
@@ -43,12 +44,15 @@ router.get("/download-all", async (req: Request, res: Response) => {});
 router.post("/add", async (req: Request, res: Response) => {
   // req.body = { userId, username, password, name, description }
   try {
-    const salts = 10;
-    const hashedPWD = await bcrypt.hash(req.body.password, salts);
+    const encryptedPWD = encode(req.body.password, {
+      algo: process.env.ENCRYPTION_ALGO,
+      salt: process.env.ENCRYPTION_SALTS,
+      iterations: parseInt(process.env.ENCRYPTION_ITER || "", 10),
+    });
     const pwdInfo = {
       userId: req.body.userId,
       username: req.body.username,
-      password: hashedPWD,
+      password: encryptedPWD,
       name: req.body.name,
       description: req.body.description,
     };
@@ -76,19 +80,13 @@ router.post("/add", async (req: Request, res: Response) => {
 router.post("/update", async (req: Request, res: Response) => {
   // req.body = { managerId, userId, username, password, name, description }
   try {
-    const salts = 10;
-    const hashedPWD = await bcrypt.hash(req.body.password, salts);
-    const pwdInfo = {
-      userId: req.body.userId,
-      username: req.body.username,
-      password: hashedPWD,
-      name: req.body.name,
-      description: req.body.description,
-    };
-    // update the old for the new values
+    const toUpdate: { [key: string]: any } = makeUpdateObj(req.body);
+    // Check if there is something to update
+    if (Object.keys(toUpdate).length === 0) return res.sendStatus(201);
+
     const update = await Manager.findOneAndUpdate(
-      { _id: req.body.managerId },
-      pwdInfo,
+      { _id: req.body.managerId, userId: req.body.userId },
+      toUpdate,
       { returnDocument: "after" }
     );
     const saved = await update.save();
