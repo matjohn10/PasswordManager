@@ -107,10 +107,21 @@ router.post("/update", async (req: Request, res: Response) => {
     const saved = await update.save();
     res.status(201).json(saved);
   } catch (err) {
-    res.status(500).json({ message: "Error adding password.", err });
+    res.status(500).json({ message: "Error updating.", err });
   }
 });
 // Delete the users information
-router.post("/del", async (req: Request, res: Response) => {});
+router.post("/del", async (req: Request, res: Response) => {
+  // req.body { managerId }
+  try {
+    const deleted = await Manager.findOneAndDelete({
+      _id: req.body.managerId,
+      userId: req.body.user.userId,
+    });
+    res.status(200).json(deleted);
+  } catch (err) {
+    res.status(500).json({ message: "Error deleting.", err });
+  }
+});
 
 module.exports = router;
