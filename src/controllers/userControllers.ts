@@ -1,13 +1,16 @@
-const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 import { Request, Response } from "express";
+const { encode, verify } = require("../controllers/encryptionController");
 require("dotenv").config();
 
 const handleRegister = async (req: Request, res: Response) => {
   try {
-    const salts = 10;
-    const hashedPWD = await bcrypt.hash(req.body.password, salts);
+    const encryptedPWD = encode(req.body.password, {
+      algo: process.env.ENCRYPTION_ALGO,
+      salt: process.env.ENCRYPTION_SALTS,
+      iterations: parseInt(process.env.ENCRYPTION_ITER || "", 10),
+    });
 
     // Checks duplicate username, custom error handling
     const dupUsername = await User.findOne({ username: req.body.username });
@@ -16,7 +19,7 @@ const handleRegister = async (req: Request, res: Response) => {
 
     const newUser = new User({
       username: req.body.username,
-      password: hashedPWD,
+      password: encryptedPWD,
     });
 
     const savedUser = await newUser.save();
@@ -38,10 +41,7 @@ const handleLogin = async (req: Request, res: Response) => {
     if (!user) {
       return res.status(401).json({ message: "Invalid username or password" });
     }
-    const validPassword = await bcrypt.compare(
-      req.body.password,
-      user.password
-    );
+    const validPassword = verify(req.body.password, user.password);
     if (!validPassword) {
       return res.status(401).json({ message: "Invalid username or password" });
     }

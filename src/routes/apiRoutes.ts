@@ -73,7 +73,30 @@ router.post("/add", async (req: Request, res: Response) => {
   }
 });
 // Update the users information
-router.post("/update", async (req: Request, res: Response) => {});
+router.post("/update", async (req: Request, res: Response) => {
+  // req.body = { managerId, userId, username, password, name, description }
+  try {
+    const salts = 10;
+    const hashedPWD = await bcrypt.hash(req.body.password, salts);
+    const pwdInfo = {
+      userId: req.body.userId,
+      username: req.body.username,
+      password: hashedPWD,
+      name: req.body.name,
+      description: req.body.description,
+    };
+    // update the old for the new values
+    const update = await Manager.findOneAndUpdate(
+      { _id: req.body.managerId },
+      pwdInfo,
+      { returnDocument: "after" }
+    );
+    const saved = await update.save();
+    res.status(201).json(saved);
+  } catch (err) {
+    res.status(500).json({ message: "Error adding password.", err });
+  }
+});
 // Delete the users information
 router.post("/del", async (req: Request, res: Response) => {});
 
