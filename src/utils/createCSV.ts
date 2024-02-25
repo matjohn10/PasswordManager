@@ -1,24 +1,30 @@
 const JSONtoArray = (info: { [key: string]: any }[]): string[][] => {
   const refined = [];
-  const keys: string[] = Object.keys(info[0]);
+  let keys = [];
+  for (const [key, value] of Object.entries(info[0]._doc)) {
+    keys.push(key);
+  }
   refined.push(keys);
   info.forEach((obj) => {
-    refined.push(Object.values(obj));
+    let values = [];
+    for (const [key, value] of Object.entries(obj._doc)) {
+      values.push(value);
+    }
+    refined.push(values);
   });
 
   return refined;
 };
 
-const createCSV = (info: { [key: string]: any }[]): string => {
+const createCSV = (info: { [key: string]: any }[]) => {
   let content = "";
   const refinedData = JSONtoArray(info);
+
   refinedData.forEach((row) => {
     content += row.join(",") + "\n";
   });
-  const blob = new Blob([content], { type: "text/csv;charset=utf-8," });
-  const objUrl = URL.createObjectURL(blob);
 
-  return objUrl;
+  return content;
 };
 
 module.exports = createCSV;

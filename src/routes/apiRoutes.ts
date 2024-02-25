@@ -61,12 +61,15 @@ router.post("/download", async (req: Request, res: Response) => {
     if (!user || user._id.toString() !== req.body.user.userId)
       return res.sendStatus(401);
 
-    const info = await Manager.find({ userId: req.body.user.userId }).exec();
+    const info = await Manager.find({ userId: req.body.user.userId });
     if (!info) return res.sendStatus(404);
 
     // file url is created and ready to be downloaded on the frontend.
     const file: string = createCSV(info);
-    res.status(201).json({ url: file });
+
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader("Content-Disposition", "attachment; filename=data.csv");
+    res.send(file);
   } catch (err) {
     res.status(500).json({ message: "Error preparing csv file.", err });
   }
