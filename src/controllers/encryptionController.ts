@@ -51,9 +51,9 @@ const encrypt = (password: string): { iv: string; password: string } => {
 };
 
 const decrypt = (encryption: { iv: string; password: string }): string => {
-  const decipher = crypto.createDecipher(
+  const decipher = crypto.createDecipheriv(
     "aes-256-ctr",
-    Buffer.from(process.env.ENCRYPTION_ALGO || ""),
+    Buffer.from(process.env.ENCRYPT_KEY || ""),
     Buffer.from(encryption.iv, "hex")
   );
   const decrypted = Buffer.concat([

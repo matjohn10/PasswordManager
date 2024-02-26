@@ -151,4 +151,29 @@ router.post("/del", async (req: Request, res: Response) => {
   }
 });
 
+// Decipher the password to show to the user
+router.post("/decipher-pwd/:managerId", async (req: Request, res: Response) => {
+  const managerId = req.params.managerId;
+  const cookies = req.cookies;
+
+  if (!cookies?.jwt) return res.sendStatus(401);
+  // find user and check if there is one, if yes -> make sure the id in params is the same as the token user.
+  const user = await User.findOne({ refreshToken: cookies.jwt });
+  if (!user || user._id.toString() !== req.body.user.userId)
+    return res.sendStatus(401);
+
+  // Get specific user's managed password
+  const info = await Manager.findOne({
+    userId: req.body.user.userId,
+    _id: managerId,
+  }).select({
+    _id: 0,
+    password: 1,
+    iv: 1,
+  });
+  const decrypted = decrypt(info);
+  if (!info) return res.sendStatus(404);
+  res.status(200).json({ password: decrypted });
+});
+
 module.exports = router;
