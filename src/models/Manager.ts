@@ -13,6 +13,10 @@ const managerSchema = new Schema({
     type: String,
     required: true,
   },
+  iv: {
+    type: String,
+    required: true,
+  },
   name: {
     type: String,
     required: true,

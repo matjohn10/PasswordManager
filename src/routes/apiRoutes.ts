@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 const express = require("express");
 require("dotenv").config();
-const { encode } = require("../controllers/encryptionController");
+const { encrypt, decrypt } = require("../controllers/encryptionController");
 const router = express.Router();
 const Manager = require("../models/Manager");
 const User = require("../models/User");
@@ -78,15 +78,12 @@ router.post("/download", async (req: Request, res: Response) => {
 router.post("/add", async (req: Request, res: Response) => {
   // req.body = { username, password, name, description }
   try {
-    const encryptedPWD = encode(req.body.password, {
-      algo: process.env.ENCRYPTION_ALGO,
-      salt: process.env.ENCRYPTION_SALTS,
-      iterations: parseInt(process.env.ENCRYPTION_ITER || "", 10),
-    });
+    const encryptedPWD = encrypt(req.body.password);
     const pwdInfo = {
       userId: req.body.user.userId,
       username: req.body.username,
-      password: encryptedPWD,
+      password: encryptedPWD.password,
+      iv: encryptedPWD.iv,
       name: req.body.name,
       description: req.body.description,
     };
@@ -119,10 +116,16 @@ router.post("/update", async (req: Request, res: Response) => {
       "managerId",
       "user",
     ]);
-    console.log(toUpdate);
+
     // Check if there is something to update
     if (Object.keys(toUpdate).length === 0) return res.sendStatus(201);
 
+    // encrypts the new password if it is passed in req.body
+    if (Object.keys(toUpdate).includes("password")) {
+      const encrypted = encrypt(toUpdate.password);
+      toUpdate.password = encrypted.password;
+      toUpdate["iv"] = encrypted.iv;
+    }
     const update = await Manager.findOneAndUpdate(
       { _id: req.body.managerId, userId: req.body.user.userId },
       toUpdate,
