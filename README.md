@@ -40,7 +40,18 @@ npm install
 
 ```sh
 touch .env
-echo "MONGO_URL=\nJWT_KEY=\nREFRESH_KEY=\nENCRYPTION_ALGO=\nENCRYPTION_SALTS=\nENCRYPTION_ITER=\nENCRYPT_KEY=" > .env
+```
+
+.env
+
+```Dotenv
+MONGO_URL=
+JWT_KEY=
+REFRESH_KEY=
+ENCRYPTION_ALGO=
+ENCRYPTION_SALTS=
+ENCRYPTION_ITER=
+ENCRYPT_KEY=
 ```
 
 4. Start the project
