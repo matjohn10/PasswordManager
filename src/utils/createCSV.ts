@@ -1,3 +1,5 @@
+const { decrypt } = require("../controllers/encryptionController");
+
 const JSONtoArray = (info: { [key: string]: any }[]): string[][] => {
   const refined = [];
   let keys = [];
@@ -8,7 +10,14 @@ const JSONtoArray = (info: { [key: string]: any }[]): string[][] => {
   info.forEach((obj) => {
     let values = [];
     for (const [key, value] of Object.entries(obj._doc)) {
-      values.push(value);
+      if (key === "password") {
+        let decrypted = decrypt({ iv: obj._doc.iv, password: value });
+        decrypted = cleanUpCSV(decrypted, key);
+        values.push(decrypted);
+      } else {
+        const cleanValue = cleanUpCSV(value, key);
+        values.push(cleanValue);
+      }
     }
     refined.push(values);
   });
@@ -25,6 +34,15 @@ const createCSV = (info: { [key: string]: any }[]) => {
   });
 
   return content;
+};
+
+const cleanUpCSV = (value: any, id: string): string => {
+  if (id !== "iv" && typeof value === "string") {
+    value = value.replace(/"/g, '""');
+    // Wrap in quotes if it contains commas or newlines
+    value = /[\n,]/.test(value) ? `"${value}"` : value;
+  }
+  return value;
 };
 
 module.exports = createCSV;
