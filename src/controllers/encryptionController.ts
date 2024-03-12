@@ -38,19 +38,21 @@ const verify = (password: String, encoded: String) => {
 
 const encrypt = (password: string): { iv: string; password: string } => {
   const iv = Buffer.from(crypto.randomBytes(16));
-  console.log("buffer");
   const cipher = crypto.createCipheriv(
     "aes-256-ctr",
     Buffer.from(process.env.ENCRYPT_KEY || ""),
     iv
   );
-  console.log("cipher");
   const encrypted = Buffer.concat([cipher.update(password), cipher.final()]);
   console.log("encrypt");
   return { iv: iv.toString("hex"), password: encrypted.toString("hex") };
 };
 
-const decrypt = (encryption: { iv: string; password: string }): string => {
+const decrypt = (encryption: {
+  iv: string;
+  password: string;
+  username?: string;
+}): string => {
   const decipher = crypto.createDecipheriv(
     "aes-256-ctr",
     Buffer.from(process.env.ENCRYPT_KEY || ""),
