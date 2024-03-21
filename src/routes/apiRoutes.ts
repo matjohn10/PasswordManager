@@ -11,9 +11,7 @@ const createCSV = require("../utils/createCSV");
 // GET all the users information
 router.get("/:userId", async (req: Request, res: Response) => {
   const userId = req.params.userId;
-  const cookies = req.cookies;
-  console.log(cookies);
-  //if (!cookies?.jwt) return res.sendStatus(401);
+
   // find user and check if there is one, if yes -> make sure the id in params is the same as the token user.
   const user = await User.findOne({ _id: userId });
   if (!user || req.body.user.userId !== userId) return res.sendStatus(401);
@@ -29,16 +27,9 @@ router.get("/:userId/:managerId", async (req: Request, res: Response) => {
   const userId = req.params.userId;
   const managerId = req.params.managerId;
 
-  const cookies = req.cookies;
-  if (!cookies?.jwt) return res.sendStatus(401);
   // find user and check if there is one, if yes -> make sure the id in params is the same as the token user.
-  const user = await User.findOne({ refreshToken: cookies.jwt });
-  if (
-    !user ||
-    user._id.toString() !== userId ||
-    req.body.user.userId !== userId
-  )
-    return res.sendStatus(401);
+  const user = await User.findOne({ _id: userId });
+  if (!user || req.body.user.userId !== userId) return res.sendStatus(401);
 
   // Get specific user's managed password
   const info = await Manager.findOne({ userId, _id: managerId });
@@ -47,12 +38,10 @@ router.get("/:userId/:managerId", async (req: Request, res: Response) => {
 });
 // Download passwords as a csv file
 router.post("/download", async (req: Request, res: Response) => {
+  // req.body = { userId }
   try {
-    const cookies = req.cookies;
-
-    if (!cookies?.jwt) return res.sendStatus(401);
     // find user and check if there is one, if yes -> make sure the id in params is the same as the token user.
-    const user = await User.findOne({ refreshToken: cookies.jwt });
+    const user = await User.findOne({ _id: req.body.userId });
 
     if (!user || user._id.toString() !== req.body.user.userId)
       return res.sendStatus(401);
