@@ -51,35 +51,35 @@ const handleLogin = async (req: Request, res: Response) => {
       expiresIn: "15m",
     });
     const refresh = jwt.sign({ userId: user._id }, process.env.REFRESH_KEY, {
-      expiresIn: "1d",
+      expiresIn: "7d",
     });
     await User.updateOne(
       { username: req.body.username },
       { refreshToken: refresh }
     );
-    res.cookie("jwt", refresh, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 });
-    res.json({ token });
+    // res.cookie("jwt", refresh, {
+    //   httpOnly: false,
+    //   maxAge: 24 * 60 * 60 * 1000,
+    // });
+    res.status(200).json({ token });
   } catch (err) {
-    res.status(500).json({ message: "Error logout user.", err });
+    res.status(500).json({ message: "Error login user.", err });
   }
 };
 
 const handleLogout = async (req: Request, res: Response) => {
   // Logout backend: clear the JWT in the DB and the cookies.
+  // req.body = { userId }
   try {
-    const cookies = req.cookies;
-    if (!cookies?.jwt) return res.sendStatus(401);
-
     // find user and check if we have found one
-    const user = await User.findOne({ refreshToken: cookies.jwt });
+    const user = await User.findOne({ _id: req.body.userId });
     if (!user) return res.sendStatus(401);
 
     const updatedUser = await User.findOneAndUpdate(
-      { refreshToken: cookies.jwt },
+      { _id: req.body.userId },
       { refreshToken: "" },
       { returnDocument: "after" }
     );
-    res.clearCookie("jwt");
     res.sendStatus(200);
   } catch (err) {
     res.status(500).json({ message: "Error logout user.", err });

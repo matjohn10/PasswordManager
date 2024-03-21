@@ -13,7 +13,7 @@ function authenticateToken(req: Request, res: Response, next: NextFunction) {
     if (err) return res.status(401).json({ message: "Invalid token", err });
 
     req.body.user = user;
-    console.log("good token");
+    console.log(user);
     next();
   });
 }

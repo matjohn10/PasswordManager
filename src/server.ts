@@ -9,8 +9,9 @@ app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
 
+//protection middleware
 const protection = require("./middleware/JwtMiddleware");
-const PORT = 3000;
+const PORT = 3030;
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello World!");

@@ -12,15 +12,11 @@ const createCSV = require("../utils/createCSV");
 router.get("/:userId", async (req: Request, res: Response) => {
   const userId = req.params.userId;
   const cookies = req.cookies;
-  if (!cookies?.jwt) return res.sendStatus(401);
+  console.log(cookies);
+  //if (!cookies?.jwt) return res.sendStatus(401);
   // find user and check if there is one, if yes -> make sure the id in params is the same as the token user.
-  const user = await User.findOne({ refreshToken: cookies.jwt });
-  if (
-    !user ||
-    user._id.toString() !== userId ||
-    req.body.user.userId !== userId
-  )
-    return res.sendStatus(401);
+  const user = await User.findOne({ _id: userId });
+  if (!user || req.body.user.userId !== userId) return res.sendStatus(401);
 
   //Get the user's managed passwords
   const info = await Manager.find({ userId }).exec();
@@ -153,14 +149,14 @@ router.post("/del", async (req: Request, res: Response) => {
 
 //Decipher using the url name passed in req.body
 router.post("/decipher-pwd", async (req: Request, res: Response) => {
-  const cookies = req.cookies;
-  console.log(cookies);
-  if (!cookies?.jwt) return res.sendStatus(401);
+  // const cookies = req.cookies;
+  // console.log(cookies);
+  //if (!cookies?.jwt) return res.sendStatus(401);
   // find user and check if there is one, if yes -> make sure the id in params is the same as the token user.
-  const user = await User.findOne({ refreshToken: cookies.jwt });
+  console.log("here");
+  const user = await User.findOne({ _id: req.body.user.userId });
   console.log(user);
-  if (!user || user._id.toString() !== req.body.user.userId)
-    return res.sendStatus(401);
+  if (!user) return res.sendStatus(401);
 
   // Get specific user's managed password
   const info = await Manager.findOne({
