@@ -10,6 +10,7 @@ router.post("/", async (req: Request, res: Response) => {
 
   // find user and check if we have found one
   const user = await User.findOne({ _id: req.body.userId });
+  console.log(user);
   if (!user || !user.refreshToken) return res.sendStatus(401);
 
   // check refresh token's validity, if good create new token

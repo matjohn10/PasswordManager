@@ -10,6 +10,7 @@ function authenticateToken(req: Request, res: Response, next: NextFunction) {
   }
   console.log("wrong token");
   jwt.verify(token, process.env.JWT_KEY, (err: any, user: any) => {
+    console.log("Middleware: ", token);
     if (err) return res.status(401).json({ message: "Invalid token", err });
 
     req.body.user = user;
